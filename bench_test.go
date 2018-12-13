@@ -13,9 +13,9 @@ import (
 func benchmarkRedisClient(poolSize int) *redis.Client {
 	client := redis.NewClient(&redis.Options{
 		Addr:         ":6379",
-		DialTimeout:  time.Second,
-		ReadTimeout:  time.Second,
-		WriteTimeout: time.Second,
+		DialTimeout:  time.Second * 5,
+		ReadTimeout:  time.Second * 5,
+		WriteTimeout: time.Second * 5,
 		PoolSize:     poolSize,
 	})
 	if err := client.FlushDB().Err(); err != nil {
