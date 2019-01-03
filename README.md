@@ -1,12 +1,15 @@
 # Redis client for Golang
 
-[![Build Status](https://travis-ci.org/go-redis/redis.png?branch=master)](https://travis-ci.org/go-redis/redis)
-[![GoDoc](https://godoc.org/github.com/go-redis/redis?status.svg)](https://godoc.org/github.com/go-redis/redis)
+[![Build Status](https://travis-ci.org/winjeg/redis.svg?branch=master)](https://travis-ci.org/winjeg/redis)[![GoDoc](https://godoc.org/github.com/go-redis/redis?status.svg)](https://godoc.org/github.com/go-redis/redis)
 [![Airbrake](https://img.shields.io/badge/kudos-airbrake.io-orange.svg)](https://airbrake.io)
+
+## updates from original
+1. use go11 modules to organize the project
+2. supports `slowlog` command
 
 Supports:
 
-- Redis 3 commands except QUIT, MONITOR, SLOWLOG and SYNC.
+- Redis 3 commands except QUIT, MONITOR and SYNC.
 - Automatic connection pooling with [circuit breaker](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern) support.
 - [Pub/Sub](https://godoc.org/github.com/go-redis/redis#PubSub).
 - [Transactions](https://godoc.org/github.com/go-redis/redis#Multi).
