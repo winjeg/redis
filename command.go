@@ -678,8 +678,10 @@ func commandSlowLogParser(rd *proto.Reader, n int64) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		vv := v.(*SlowLog)
-		logs =  append(logs, vv)
+		if v != nil {
+			vv := v.(*SlowLog)
+			logs =  append(logs, vv)
+		}
 	}
 	return logs, nil
 }
