@@ -12,5 +12,4 @@ matrix:
   allow_failures:
     - go: tip
 
-install:
-  - go mod tidy
+before_install: GO111MODULE=on go mod vendor
