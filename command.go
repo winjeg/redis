@@ -647,12 +647,17 @@ type SlowLog struct {
 	ExecTime int64
 	Time     int64
 	Args     []string
+	// for redis 4.0 or higher
+	ClientIp   string
+	ClientName string
 }
 type SlowLogCmd struct {
 	baseCmd
 	val []*SlowLog
 }
+
 var _ Cmder = (*SlowLogCmd)(nil)
+
 func NewSlowLogCmd(args ...interface{}) *SlowLogCmd {
 	return &SlowLogCmd{
 		baseCmd: baseCmd{_args: args},
@@ -670,34 +675,73 @@ func (cmd *SlowLogCmd) readReply(rd *proto.Reader) error {
 func (cmd *SlowLogCmd) Result() ([]*SlowLog, error) {
 	return cmd.val, cmd.err
 }
+
 // Implements proto.MultiBulkParse
 func commandSlowLogParser(rd *proto.Reader, n int64) (interface{}, error) {
 	logs := make([]*SlowLog, 0, n)
+	isHigherVersion := false
+	first := false
+	var log SlowLog
 	for i := int64(0); i < n; i++ {
 		v, err := rd.ReadReply(slowLogParse)
 		if err != nil {
 			return nil, err
 		}
 		if v != nil {
-			vv := v.(*SlowLog)
-			logs =  append(logs, vv)
+			if vv, ok := v.(*SlowLog); ok {
+				log = *vv
+			}
+			// trick here for redis version >=4.0 or < 4/0
+			if !isHigherVersion {
+				if vv, ok := v.(string); ok {
+					// first time read higher version, read its client name first
+					isHigherVersion = true
+					clientName, err := rd.ReadString()
+					if err != nil {
+						continue
+					}
+					log.ClientIp = vv
+					log.ClientName = clientName
+					first = true
+				}
+			} else {
+				first = false
+				clientIp, err := rd.ReadString()
+				if err != nil {
+					continue
+				}
+				clientName, err := rd.ReadString()
+				if err != nil {
+					continue
+				}
+				log.ClientName = clientName
+				log.ClientIp = clientIp
+			}
+			l := SlowLog(log)
+			if first {
+				// first time to detect higher version
+				logs = make([]*SlowLog, 0, n)
+				continue
+			}
+			logs = append(logs, &l)
 		}
 	}
 	return logs, nil
 }
+
 func slowLogParse(rd *proto.Reader, n int64) (interface{}, error) {
 	var slowLog SlowLog
-	id, err := readString2Int(rd)
+	id, err := rd.ReadIntReply()
 	if err != nil {
 		return nil, err
 	}
 	slowLog.Id = id
-	t, err := readString2Int(rd)
+	t, err := rd.ReadIntReply()
 	if err != nil {
 		return nil, err
 	}
 	slowLog.Time = t
-	execTime, err := readString2Int(rd)
+	execTime, err := rd.ReadIntReply()
 	if err != nil {
 		return nil, err
 	}
@@ -709,19 +753,6 @@ func slowLogParse(rd *proto.Reader, n int64) (interface{}, error) {
 	slowLog.Args = args.([]string)
 	return &slowLog, nil
 }
-func readString2Int(rd *proto.Reader) (int64, error) {
-	intStr, err := rd.ReadString()
-	if err != nil {
-		return 0, err
-	}
-	id, err := strconv.ParseInt(intStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return id, nil
-}
-
-
 
 //------------------------------------------------------------------------------
 
