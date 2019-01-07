@@ -696,6 +696,7 @@ func commandSlowLogParser(rd *proto.Reader, n int64) (interface{}, error) {
 				if vv, ok := v.(string); ok {
 					// first time read higher version, read its client name first
 					isHigherVersion = true
+					n += 1
 					clientName, err := rd.ReadString()
 					if err != nil {
 						continue
@@ -721,6 +722,7 @@ func commandSlowLogParser(rd *proto.Reader, n int64) (interface{}, error) {
 			if first {
 				// first time to detect higher version
 				logs = make([]*SlowLog, 0, n)
+				logs = append(logs, &l)
 				continue
 			}
 			logs = append(logs, &l)

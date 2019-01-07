@@ -1,5 +1,6 @@
 package redis_test
 import (
+	"fmt"
 	"testing"
 
 	"github.com/winjeg/redis"
@@ -13,7 +14,8 @@ var (
 	})
 )
 func TestCmdable_SlowLogGet(t *testing.T) {
-	y, e := client.SlowLogGet(10).Result()
+	y, e := client.SlowLogGet(50).Result()
+	fmt.Println(len(y))
 	if e != nil {
 		t.FailNow()
 	}
