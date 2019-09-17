@@ -22,7 +22,7 @@ func TestCmdable_SlowLogGet(t *testing.T) {
 	if y == nil {
 		println("no slow log found")
 	}
-	if len(y) == 1 && y[0].ClientName != "" {
+	if len(y) == 1 && y[0].ClientName == "" {
 		t.FailNow()
 	}
 	y, e = client.SlowLogGet(50).Result()
