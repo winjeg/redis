@@ -693,6 +693,17 @@ func commandSlowLogParser(rd *proto.Reader, n int64) (interface{}, error) {
 			}
 			// trick here for redis version >=4.0 or < 4/0
 			if !isHigherVersion {
+				// when n = 1 direct read info first
+				if n == 1 {
+					clientIp, err := rd.ReadString()
+					if err == nil {
+						clientName, err := rd.ReadString()
+						if err == nil {
+							log.ClientName = clientName
+							log.ClientIp = clientIp
+						}
+					}
+				}
 				if vv, ok := v.(string); ok {
 					// first time read higher version, read its client name first
 					isHigherVersion = true
